@@ -95,19 +95,8 @@ var AUTOSEARCH_DELAY = 1000;
 	      }
 	      //draw the individual hits
 	      for (var i = 0; i < result.response.docs.length; i++) {
-		var title = normalize_ws(get_maybe_highlit(result, i, HITTITLE));
-		  var text = normalize_ws(get_maybe_highlit(result, i, HITBODY));
-		  var teaser = normalize_ws(get_maybe_highlit(result, i, HITTEASER));
-		var link = result.response.docs[i][HITLINK];
-	      
-		var hit_data = {title: title, text: text};
+		var hit_data = normalize_hit(result, i);
 
-		if (teaser) {
-		  hit_data['teaser'] = teaser;
-		}
-		if (link) {
-		  hit_data['link'] = link;
-		}
 
 		rs.append(TEMPLATES.hitTemplate(hit_data));
 	      }
@@ -330,3 +319,36 @@ var AUTOSEARCH_DELAY = 1000;
     }
   }
 
+  function normalize_hit(result, i) {
+    var hit_data = $.extend({}, result.response.docs[i]);
+
+    if (result.hasOwnProperty("highlighting")) {
+      $.extend(hit_data, result.highlighting[hit_data[HITID]]);
+    }
+
+    // hysterical-raisins-are-us: 
+    // these mappings are provided for compatibility with code that
+    // assumes that the hit data is composed of title, body, link &
+    // teaser. it is probably better to use the field names actually
+    // returned by SOLR.
+    if (HITTITLE || HITLINK || HITBODY || HITTEASER) {
+      var aux = {};
+      if (HITTITLE) {
+	aux.title = hit_data[HITTITLE];
+      }
+      if (HITLINK) {
+	aux.link = hit_data[HITLINK];
+      }
+      if (HITBODY) {
+	aux.text = hit_data[HITBODY];
+      }
+      if (HITTEASER) {
+	aux.teaser = hit_data[HITBODY];
+      }
+      $.extend(hit_data, aux);
+    }
+    for (k in hit_data) {
+      hit_data[k] = normalize_ws(array_as_string(hit_data[k]));
+    }
+    return hit_data;
+  }
