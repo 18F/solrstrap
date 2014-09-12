@@ -7,6 +7,7 @@ var HITTITLE = 'title';                                        //Name of the tit
 var HITBODY = 'text';                                          //Name of the body field- the teaser text of each hit
 var HITSPERPAGE = 20;                                          //page size- hits per page
 var FACETS = ['topics','organisations'];                       //facet categories
+var FACETS_RANGES = [];
 
 var FACETS_TITLES = {'topics': 'subjects'};  // selective rename facet names for display
 
@@ -122,13 +123,23 @@ var AUTOSEARCH_DELAY = 1000;
 		$('#solrstrap-facets').append(TEMPLATES.chosenNavTemplate(fqobjs));
 	      }
 	      //available facets
-	      for (var k in result.facet_counts.facet_fields) {
+	      var k;
+	      for (k in result.facet_counts.facet_fields) {
 		if (result.facet_counts.facet_fields[k].length > 0) {
 		  $('#solrstrap-facets')
 		    .append(TEMPLATES.navTemplate({
 			title: k,
 			    navs:
 			  makeNavsSensible(result.facet_counts.facet_fields[k])}));
+		}
+	      }
+	      for (k in result.facet_counts.facet_ranges) {
+		if (result.facet_counts.facet_ranges[k].counts.length > 0) {
+		  $('#solrstrap-facets')
+		    .append(TEMPLATES.navTemplate({
+			title: k,
+			    navs:
+			  makeNavsSensible(result.facet_counts.facet_ranges[k].counts)}));
 		}
 	      }
 	      $('div.facet > a').click(add_nav);
@@ -183,6 +194,19 @@ var AUTOSEARCH_DELAY = 1000;
       ret['facet.mincount'] = '1';
       ret['facet.limit'] = '20';
       ret['facet.field'] = FACETS;
+    }
+    if (FACETS_RANGES) {
+      var ranges = [];
+      for (facet in FACETS_RANGES) {
+	if (FACETS_RANGES.hasOwnProperty(facet)) {
+	  ranges.push(facet);
+	  var facetdata = FACETS_RANGES[facet];
+	  ret['f.'+facet+'.facet.range.start'] = facetdata[0];
+	  ret['f.'+facet+'.facet.range.end']= facetdata[1];
+	  ret['f.'+facet+'.facet.range.gap']= facetdata[2];
+	}
+      }
+      ret['facet.range'] = ranges;
     }
     if (fq.length > 0) {
       ret['fq'] = fq;
@@ -347,8 +371,10 @@ var AUTOSEARCH_DELAY = 1000;
       }
       $.extend(hit_data, aux);
     }
+    /*
     for (k in hit_data) {
       hit_data[k] = normalize_ws(array_as_string(hit_data[k]));
     }
+    */
     return hit_data;
   }
