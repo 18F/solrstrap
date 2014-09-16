@@ -23,6 +23,8 @@ var HL_SNIPPETS = 3;
 
 var AUTOSEARCH_DELAY = 1000;
 
+var AUTOCOMPLETE_DEFAULTFIELD = null;
+
 //when the page is loaded- do this
   $(document).ready(function() {
     $('#solrstrap-hits').append('<div offset="0"></div>');
@@ -30,6 +32,10 @@ var AUTOSEARCH_DELAY = 1000;
     $('#solrstrap-searchbox').focus();
     //when the searchbox is typed- do this
     $('#solrstrap-searchbox').keyup(keyuphandler);
+    if (AUTOCOMPLETE_DEFAULTFIELD) {
+      $("#solrstrap-searchbox").autocomplete(
+	{minLength: 2, source: autocomplete});
+    }
     $('form.navbar-search').submit(handle_submit);
     $(window).bind('hashchange', hashchange);
     $('#solrstrap-searchbox').bind("change", querychange);
@@ -380,4 +386,40 @@ var AUTOSEARCH_DELAY = 1000;
     }
     */
     return hit_data;
+  }
+
+  function autocomplete(request, callback)
+  {
+    try {
+      $.ajax({url:SERVERROOT,
+	      dataType: 'jsonp',
+	      data: {
+		q: "*:*",
+		rows: 0,
+		wt: "json",
+		facet: true,
+		'facet.field': AUTOCOMPLETE_DEFAULTFIELD,
+		'facet.prefix': request.term,
+	      },
+	      traditional: true,
+	      jsonp: 'json.wrf',
+	      // async: false,
+	      success: 
+	      function(result){
+		var completions = [];
+		try {
+		  var comps = result.facet_counts.facet_fields[AUTOCOMPLETE_DEFAULTFIELD];
+		  for (var i = 0; i < comps.length; i+= 2) {
+		    completions.push(comps[i]);
+		  }
+		}
+		catch (ex) {
+		  alert(ex);
+		}
+		callback(completions);
+	      }});
+    }
+    catch (ex) {
+      alert(ex);
+    }    
   }
