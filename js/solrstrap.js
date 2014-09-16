@@ -79,73 +79,74 @@ var AUTOSEARCH_DELAY = 1000;
       var rs = this;
       $(rs).parent().css({ opacity: 0.5 });
       $.ajax({url:SERVERROOT,
-	    dataType: 'jsonp',
-	    data: buildSearchParams(q, fq, offset), 
-	    traditional: true,
-	    jsonp: 'json.wrf',
-	    success: 
-	  function(result){
-	    // console.log(result);
-	    //only redraw hits if there are new hits available
-	    if (result.response.docs.length > 0) {
-	      if (offset == 0) {
-		rs.empty();
-		//strapline that tells you how many hits you got
-		rs.append(TEMPLATES.summaryTemplate({totalresults: result.response.numFound, query: q}));
-		rs.siblings().remove();
-	      }
-	      //draw the individual hits
-	      for (var i = 0; i < result.response.docs.length; i++) {
-		var hit_data = normalize_hit(result, i);
-
-
-		rs.append(TEMPLATES.hitTemplate(hit_data));
-	      }
-	      $(rs).parent().css({ opacity: 1 });
-	      //if more results to come- set up the autoload div
-	      if ((+HITSPERPAGE+offset) < +result.response.numFound) {
-		var nextDiv = document.createElement('div');
-		$(nextDiv).attr('offset', +HITSPERPAGE+offset);
-		rs.parent().append(nextDiv);
-		$(nextDiv).loadSolrResultsWhenVisible(q, fq, +HITSPERPAGE+offset);
-	      }
-	      //facets
-	      $('#solrstrap-facets').empty();
-	      //chosen facets
-	      if (fq.length > 0) {
-		var fqobjs = [];
-		for (var i = 0; i < fq.length; i++) {
-		  var m = fq[i].match(/^([^:]+):(.*)/);
-		  if (m) {
-		    fqobjs.push({'name': m[1], 'value': m[2]});
+	      dataType: 'jsonp',
+	      data: buildSearchParams(q, fq, offset), 
+	      traditional: true,
+	      jsonp: 'json.wrf',
+	      success: 
+	      function(result){
+		// console.log(result);
+		//only redraw hits if there are new hits available
+		if (result.response.docs.length > 0) {
+		  if (offset == 0) {
+		    rs.empty();
+		    //strapline that tells you how many hits you got
+		    rs.append(TEMPLATES.summaryTemplate({totalresults: result.response.numFound, query: q}));
+		    rs.siblings().remove();
 		  }
-		}
-		$('#solrstrap-facets').append(TEMPLATES.chosenNavTemplate(fqobjs));
-	      }
-	      //available facets
-	      var k;
-	      for (k in result.facet_counts.facet_fields) {
-		if (result.facet_counts.facet_fields[k].length > 0) {
-		  $('#solrstrap-facets')
-		    .append(TEMPLATES.navTemplate({
-			title: k,
+		  //draw the individual hits
+		  for (var i = 0; i < result.response.docs.length; i++) {
+		    var hit_data = normalize_hit(result, i);
+
+
+		    rs.append(TEMPLATES.hitTemplate(hit_data));
+		  }
+		  $(rs).parent().css({ opacity: 1 });
+		  //if more results to come- set up the autoload div
+		  if ((+HITSPERPAGE+offset) < +result.response.numFound) {
+		    var nextDiv = document.createElement('div');
+		    $(nextDiv).attr('offset', +HITSPERPAGE+offset);
+		    rs.parent().append(nextDiv);
+		    $(nextDiv).loadSolrResultsWhenVisible(q, fq, +HITSPERPAGE+offset);
+		  }
+		  if (offset === 0) {
+		    //facets
+		    $('#solrstrap-facets').empty();
+		    //chosen facets
+		    if (fq.length > 0) {
+		      var fqobjs = [];
+		      for (var i = 0; i < fq.length; i++) {
+			var m = fq[i].match(/^([^:]+):(.*)/);
+			if (m) {
+			  fqobjs.push({'name': m[1], 'value': m[2]});
+			}
+		      }
+		    }
+		    $('#solrstrap-facets').append(TEMPLATES.chosenNavTemplate(fqobjs));
+		    //available facets
+		    var k;
+		    for (k in result.facet_counts.facet_fields) {
+		      if (result.facet_counts.facet_fields[k].length > 0) {
+			$('#solrstrap-facets')
+			  .append(TEMPLATES.navTemplate({
+			    title: k,
 			    navs:
-			  makeNavsSensible(result.facet_counts.facet_fields[k])}));
-		}
-	      }
-	      for (k in result.facet_counts.facet_ranges) {
-		if (result.facet_counts.facet_ranges[k].counts.length > 0) {
-		  $('#solrstrap-facets')
-		    .append(TEMPLATES.navTemplate({
-			title: k,
+			    makeNavsSensible(result.facet_counts.facet_fields[k])}));
+		      }
+		    }
+		    for (k in result.facet_counts.facet_ranges) {
+		      if (result.facet_counts.facet_ranges[k].counts.length > 0) {
+			$('#solrstrap-facets')
+			  .append(TEMPLATES.navTemplate({
+			    title: k,
 			    navs:
-			  makeNavsSensible(result.facet_counts.facet_ranges[k].counts)}));
-		}
-	      }
-	      $('div.facet > a').click(add_nav);
-	      $('div.chosen-facet > a').click(del_nav);
-	    }
-	  }});
+			    makeNavsSensible(result.facet_counts.facet_ranges[k].counts)}));
+		      }
+		    }
+		    $('div.facet > a').click(add_nav);
+		    $('div.chosen-facet > a').click(del_nav);
+		  }}
+	      }});
     };
   })( jQuery );
 
@@ -222,28 +223,28 @@ var AUTOSEARCH_DELAY = 1000;
   }
 
   //optionally convert a string array to a string, by concatenation
-  function array_as_string(array_or_string)
+  function array_as_string(object)
   {
-    var ret = '';
-    if (typeof(array_or_string) == 'string') {
-      ret = array_or_string;
+    if (typeof(object) == 'object' 
+	&& object.hasOwnProperty('length') 
+	&& object.length > 0) {
+      
+      return object.join("; ");
     }
-    else if (typeof(array_or_string) == 'object' 
-	     && array_or_string.hasOwnProperty('length') 
-	     && array_or_string.length > 0) {
-      ret = array_or_string.join(" ... ");
-    }
-    return ret;
+    return object;
   }
 
   //normalize a string with respect to whitespace:
   //1) Remove all leadsing and trailing whitespace
   //2) Replace all runs of tab, space and &nbsp; with a single space
-  function normalize_ws(string) 
+  function normalize_ws(object) 
   {
-    return string.replace(/^\s+/, '')
-      .replace(/\s+$/, '')
-      .replace(/(?: |\t|&nbsp;|&#xa0;|\xa0)+/g, ' '); 
+    if (typeof(object) === 'string') {
+      return object.replace(/^\s+/, '')
+	.replace(/\s+$/, '')
+	.replace(/(?: |\t|&nbsp;|&#xa0;|\xa0)+/g, ' ');
+    }
+    return object;
   }
 
 
@@ -323,10 +324,12 @@ var AUTOSEARCH_DELAY = 1000;
   var timeoutid;
   function keyuphandler()
   {
-    if (timeoutid) {
-      window.clearTimeout(timeoutid);
+    if (AUTOSEARCH_DELAY >= 0) {
+      if (timeoutid) {
+	window.clearTimeout(timeoutid);
+      }
+      timeoutid = window.setTimeout(maybe_autosearch, AUTOSEARCH_DELAY);
     }
-    timeoutid = window.setTimeout(maybe_autosearch, AUTOSEARCH_DELAY);
   }
 
   function maybe_autosearch()
