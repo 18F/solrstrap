@@ -1,6 +1,5 @@
-
-
-//CONST- CHANGE ALL THESE TO TELL SOLRSTRAP ABOUT THE LOCATION AND STRUCTURE OF YOUR SOLR
+// CONST- CHANGE ALL THESE TO TELL SOLRSTRAP ABOUT THE LOCATION AND
+// STRUCTURE OF YOUR SOLR 
 
 var SERVERROOT = 'http://evolvingweb.ca/solr/reuters/select/'; //SELECT endpoint
 var HITTITLE = 'title';                                        //Name of the title field- the heading of each hit
