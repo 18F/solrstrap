@@ -1,27 +1,34 @@
-
-
 //CONST- CHANGE ALL THESE TO TELL SOLRSTRAP ABOUT THE LOCATION AND STRUCTURE OF YOUR SOLR
 
-var SERVERROOT = 'http://evolvingweb.ca/solr/reuters/select/'; //SELECT endpoint
+var SERVERROOT = 'http://ckan.lo:8080/solr/collection1/select'; //SELECT endpoint
 var HITTITLE = 'title';                                        //Name of the title field- the heading of each hit
-var HITBODY = 'text';                                          //Name of the body field- the teaser text of each hit
+var HITBODY = 'notes';                                          //Name of the body field- the teaser text of each hit
 var HITSPERPAGE = 20;                                          //page size- hits per page
-var FACETS = ['topics','organisations'];                       //facet categories
+//var FACETS = ['tags'];                       //facet categories
+var FACETS = ['res_format','tags','metadata_type','organization','extras_contact-email'];                       //facet categories
+//var FACETS_RANGES = ['date':['0','1','2']];
 var FACETS_RANGES = [];
+var GROUP= ['extras_contact-email'];
+var SAVEGROUP= GROUP;
+//var GROUP = null;
 
-var FACETS_TITLES = {'topics': 'subjects'};  // selective rename facet names for display
+//var FACETS_TITLES = {'tags': 'tags'};  // selective rename facet names for display
+var FACETS_TITLES = {'res_format':'Format', 'metadata_type':'Dataset Type'};  // selective rename facet names for display
 
-var HITID = 'id'		// Name of the id field
-var HITTEASER = 'teaser';	// Name of field to use for teaser
-var HITLINK = 'url';		// Name of field to use for link
-
-var HL = true;
-var HL_FL = 'text, title';
+var HITID = 'name'              // Name of the id field
+var HITTEASER = 'notes';        // Name of field to use for teaser
+var HITLINK = 'name';           // Name of field to use for link
+function rewrite_hitlink(link)
+{
+        return '/dataset/'+link;
+}
+var HL = false;
+var HL_FL = 'name, title';
 var HL_SIMPLE_PRE = '<em>';
 var HL_SIMPLE_POST = '</em>';
 var HL_SNIPPETS = 3;
 
-var AUTOSEARCH_DELAY = 1000;
+var AUTOSEARCH_DELAY = 0;
 
 //when the page is loaded- do this
   $(document).ready(function() {
@@ -85,9 +92,23 @@ var AUTOSEARCH_DELAY = 1000;
 	      jsonp: 'json.wrf',
 	      success: 
 	      function(result){
-		// console.log(result);
+		 console.log(result);
+                 var doclength = 0;
+		//
+		if (result.grouped)
+                {
+                  // let's move the response around..
+                  doclength = result.grouped[GROUP[0]].groups.length;
+                  result.response = {};
+                  result.response.numFound = result.grouped[GROUP[0]].ngroups;
+                }
+                  else 
+			{
+			doclength = result.response.docs.length;
+			}
+	          console.log(doclength);
 		//only redraw hits if there are new hits available
-		if (result.response.docs.length > 0) {
+		if (doclength > 0) {
 		  if (offset == 0) {
 		    rs.empty();
 		    //strapline that tells you how many hits you got
@@ -95,7 +116,7 @@ var AUTOSEARCH_DELAY = 1000;
 		    rs.siblings().remove();
 		  }
 		  //draw the individual hits
-		  for (var i = 0; i < result.response.docs.length; i++) {
+		  for (var i = 0; i < doclength ; i++) {
 		    var hit_data = normalize_hit(result, i);
 
 
@@ -143,6 +164,7 @@ var AUTOSEARCH_DELAY = 1000;
 			    makeNavsSensible(result.facet_counts.facet_ranges[k].counts)}));
 		      }
 		    }
+		    $('div.facet-group > a').click(add_nav_group);
 		    $('div.facet > a').click(add_nav);
 		    $('div.chosen-facet > a').click(del_nav);
 		  }}
@@ -219,6 +241,12 @@ var AUTOSEARCH_DELAY = 1000;
       ret['hl.simple.post'] = HL_SIMPLE_POST;
       ret['hl.snippets'] = HL_SNIPPETS;
     }
+    if (fq.length==0) {
+      ret['group'] = true;
+      ret['group.field'] = GROUP[0];
+      ret['group.ngroups'] = true;
+    }
+
     return ret;
   }
 
@@ -284,6 +312,25 @@ var AUTOSEARCH_DELAY = 1000;
     }
     return false;
   }
+  function add_nav_group(event) 
+  {
+    var whence = event.target;
+    var navname = GROUP[0];
+    var navvalue = $(whence).text();
+    var newnav = navname + ':"' + navvalue.replace(/([\\\"])/g, "\\$1") + '"';
+    var fq = getURLParamArray("fq");
+
+    // check if it already exists...
+    var existing = $.grep(fq, function(elt, idx) {
+	return elt === newnav;
+      });
+
+    if (existing.length === 0) {
+      fq.push(newnav);
+      $.bbq.pushState({'fq': fq});
+    }
+    return false;
+  }
 
   //handler for navigator de-selection
   function del_nav(event) 
@@ -299,6 +346,10 @@ var AUTOSEARCH_DELAY = 1000;
     fq = $.grep(fq, function(elt, idx) {
 	return elt === filter;
       }, true);
+
+    if (fq.length==0)
+	GROUP=SAVEGROUP;
+
     $.bbq.pushState({"fq": fq});
     return false;
   }
@@ -347,7 +398,16 @@ var AUTOSEARCH_DELAY = 1000;
   }
 
   function normalize_hit(result, i) {
-    var hit_data = $.extend({}, result.response.docs[i]);
+    var hit_data;
+
+   if (result.grouped)
+   {
+    hit_data = $.extend({}, result.grouped[GROUP[0]].groups[i].doclist.docs[0]);
+   }
+   else
+   {
+    hit_data = $.extend({}, result.response.docs[i]);
+   }
 
     if (result.hasOwnProperty("highlighting")) {
       $.extend(hit_data, result.highlighting[hit_data[HITID]]);
@@ -361,10 +421,16 @@ var AUTOSEARCH_DELAY = 1000;
     if (HITTITLE || HITLINK || HITBODY || HITTEASER) {
       var aux = {};
       if (HITTITLE) {
-	aux.title = hit_data[HITTITLE];
+        if (result.grouped)
+        {
+	  aux.title = result.grouped[GROUP[0]].groups[i].doclist.numFound+' ['+result.grouped[GROUP[0]].groups[i].groupValue+'] '+hit_data[HITTITLE];
+          aux.group = result.grouped[GROUP[0]].groups[i].groupValue;
+        }
+        else
+	  aux.title = hit_data[HITTITLE];
       }
       if (HITLINK) {
-	aux.link = hit_data[HITLINK];
+	aux.link = rewrite_hitlink(hit_data[HITLINK]);
       }
       if (HITBODY) {
 	aux.text = hit_data[HITBODY];
