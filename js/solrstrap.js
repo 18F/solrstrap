@@ -5,10 +5,10 @@ var HITTITLE = 'title';                                        //Name of the tit
 var HITBODY = 'notes';                                          //Name of the body field- the teaser text of each hit
 var HITSPERPAGE = 20;                                          //page size- hits per page
 //var FACETS = ['tags'];                       //facet categories
-var FACETS = ['res_format','tags','metadata_type','organization','extras_contact-email'];                       //facet categories
+var FACETS = [ 'contact-email', 'contact-name', 'harvest_source_title', 'responsible-party',  'metadata-type', 'collection_metadata', 'config', 'coupled-resource', 'dataset_type', 'entity_type', 'license', 'res_format','tags','organization'];                       //facet categories
 //var FACETS_RANGES = ['date':['0','1','2']];
 var FACETS_RANGES = [];
-var GROUP= ['extras_contact-email'];
+var GROUP= ['contact-email'];
 var SAVEGROUP= GROUP;
 //var GROUP = null;
 
@@ -165,8 +165,10 @@ var AUTOSEARCH_DELAY = 0;
 		      }
 		    }
 		    $('div.facet-group > a').click(add_nav_group);
+		    $('div.group-group > a').click(add_nav_group_group);
 		    $('div.facet > a').click(add_nav);
 		    $('div.chosen-facet > a').click(del_nav);
+		    $('#group-label').html(GROUP[0]);
 		  }}
 	      }});
     };
@@ -241,6 +243,10 @@ var AUTOSEARCH_DELAY = 0;
       ret['hl.simple.post'] = HL_SIMPLE_POST;
       ret['hl.snippets'] = HL_SNIPPETS;
     }
+
+    var group = getURLParamArray("group");
+    if (group && group.length) GROUP[0]=group;
+
     if (fq.length==0) {
       ret['group'] = true;
       ret['group.field'] = GROUP[0];
@@ -331,6 +337,34 @@ var AUTOSEARCH_DELAY = 0;
     }
     return false;
   }
+  function add_nav_group_group(event) 
+  {
+console.log("AJS");
+    var whence = event.target;
+    var navvalue = $(whence).text();
+    var group= getURLParamArray("group");
+    navvalue = navvalue.replace(/([\\\"])/g, "\\$1");
+
+
+    GROUP[0]=navvalue;
+
+console.log("navvalue: "+navvalue);
+     group = [];
+
+    // check if it already exists...
+    var existing = $.grep(group, function(elt, idx) {
+console.log("exists");
+	return elt === navvalue;
+      });
+
+    if (existing.length === 0) {
+console.log("new");
+      group.push(navvalue);
+      $.bbq.pushState({'group': group});
+    }
+    return false;
+  }
+ // <option value="extras_responsible-party">Responsible Party</option>
 
   //handler for navigator de-selection
   function del_nav(event) 
