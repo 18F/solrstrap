@@ -208,6 +208,7 @@ var AUTOSEARCH_DELAY = 0;
   }
 
   function buildSearchParams(q, fq, offset) {
+ console.log("AJS 1 fq.length = "+fq.length);
     var ret = { 
     'rows': HITSPERPAGE,
     'wt': 'json',
@@ -233,6 +234,10 @@ var AUTOSEARCH_DELAY = 0;
       }
       ret['facet.range'] = ranges;
     }
+    var myfq= getURLParamArray("fq");
+    // not sure why fq is sometimes wrong...
+    if (myfq.length!=fq.length) fq = myfq;
+
     if (fq.length > 0) {
       ret['fq'] = fq;
     }
@@ -246,7 +251,7 @@ var AUTOSEARCH_DELAY = 0;
 
     var group = getURLParamArray("group");
     if (group && group.length) GROUP[0]=group;
-
+  
     if (fq.length==0) {
       ret['group'] = true;
       ret['group.field'] = GROUP[0];
