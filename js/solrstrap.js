@@ -1,11 +1,11 @@
 //CONST- CHANGE ALL THESE TO TELL SOLRSTRAP ABOUT THE LOCATION AND STRUCTURE OF YOUR SOLR
 
-var SERVERROOT = 'http://ckan.lo:8080/solr/collection1/select'; //SELECT endpoint
+var SERVERROOT = 'http://52.10.240.189:8080/solr/collection1/select'; //SELECT endpoint
 var HITTITLE = 'title';                                        //Name of the title field- the heading of each hit
 var HITBODY = 'notes';                                          //Name of the body field- the teaser text of each hit
 var HITSPERPAGE = 20;                                          //page size- hits per page
 //var FACETS = ['tags'];                       //facet categories
-var FACETS = [ 'contact-email', 'contact-name', 'harvest_source_title', 'responsible-party',  'metadata-type', 'collection_metadata', 'config', 'coupled-resource', 'dataset_type', 'entity_type', 'license', 'res_format','tags','organization'];                       //facet categories
+var FACETS = [ 'AJS_CLUSTER','contact-email', 'contact-name', 'harvest_source_title', 'responsible-party',  'metadata-type', 'collection_metadata', 'config', 'coupled-resource', 'dataset_type', 'entity_type', 'license', 'res_format','tags','organization'];                       //facet categories
 //var FACETS_RANGES = ['date':['0','1','2']];
 var FACETS_RANGES = [];
 var GROUP= ['contact-email'];
