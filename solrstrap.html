@@ -9,7 +9,9 @@
     <link href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap-responsive.min.css" rel="stylesheet" media="screen">
     <link href="http://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet" media="screen">
 
+
     <link href="css/solrstrap.css" rel="stylesheet" media="screen">
+    <link id="bsdp-css" href="css/datepicker3.css" rel="stylesheet">
   </head>
   <body screen_capture_injected="true">
 
@@ -21,6 +23,11 @@
           <form class="navbar-search" style="float:right">
             <div id="search-div">
               <input type="text" class="search-query span8" placeholder="Search for a dataset..." onfocus="this.value = this.value;" id="solrstrap-searchbox" name="q">
+<div class="input-daterange input-group" id="datepicker">
+    <input type="text" class="input-sm form-control" name="start" />
+    <span class="input-group-addon">to</span>
+    <input type="text" class="input-sm form-control" name="end" />
+</div>
             </div>
           </form>
         </div>
@@ -71,6 +78,7 @@
   <a href='#' >dataset_type</a>
   <a href='#' >entity_type</a>
   <a href='#' >license</a>
+  <a href='#' >parent_of</a>
   <a href='#' >AJS_CLUSTER</a>
 </div>
 </span>
@@ -109,7 +117,12 @@
 
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.min.js"></script>
     <script type='text/javascript' src="js/solrstrap.js"></script>
+    <script type='text/javascript' src="js/bootstrap-datepicker.js"></script>
 
-
+<script type='text/javascript'>
+$('.input-daterange').datepicker({
+    autoclose: true
+});
+</script>
   </body>
 </html>

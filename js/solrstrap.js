@@ -1,13 +1,14 @@
 //CONST- CHANGE ALL THESE TO TELL SOLRSTRAP ABOUT THE LOCATION AND STRUCTURE OF YOUR SOLR
 
-var SERVERROOT = 'http://52.10.240.189:8080/solr/collection1/select'; //SELECT endpoint
+var SERVERROOT = 'http://52.10.162.26:8080/solr/collection1/select'; //SELECT endpoint
 var HITTITLE = 'title';                                        //Name of the title field- the heading of each hit
 var HITBODY = 'notes';                                          //Name of the body field- the teaser text of each hit
 var HITSPERPAGE = 20;                                          //page size- hits per page
 //var FACETS = ['tags'];                       //facet categories
-var FACETS = [ 'AJS_CLUSTER','contact-email', 'contact-name', 'harvest_source_title', 'responsible-party',  'metadata-type', 'collection_metadata', 'config', 'coupled-resource', 'dataset_type', 'entity_type', 'license', 'res_format','tags','organization'];                       //facet categories
-//var FACETS_RANGES = ['date':['0','1','2']];
-var FACETS_RANGES = [];
+var FACETS = [ 'AJS_CLUSTER','contact-email', 'contact-name', 'harvest_source_title', 'responsible-party',  'metadata-type', 'collection_metadata', 'config', 'coupled-resource', 'dataset_type', 'entity_type', 'license', 'res_format','tags','organization','parent_of'];                       //facet categories
+//var FACETS_RANGES = {'temporal-extent-begin':['NOW/YEAR-30YEAR','NOW/MONTH+1MONTH','+30DAY']};
+var FACETS_RANGES = {'temporal-extent-begin':['NOW/YEAR-50YEAR','NOW/MONTH+1MONTH','+1YEAR'],'temporal-extent-end':['NOW/YEAR-50YEAR','NOW/MONTH+1MONTH','+1YEAR']};
+//var FACETS_RANGES = [];
 var GROUP= ['contact-email'];
 var SAVEGROUP= GROUP;
 //var GROUP = null;
@@ -218,7 +219,7 @@ var AUTOSEARCH_DELAY = 0;
     if (FACETS.length > 0) {
       ret['facet'] = 'true';
       ret['facet.mincount'] = '1';
-      ret['facet.limit'] = '20';
+      ret['facet.limit'] = '30';
       ret['facet.field'] = FACETS;
     }
     if (FACETS_RANGES) {
